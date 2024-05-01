@@ -44,7 +44,7 @@ def main():
             file_name = file.name
             file_content = file.getvalue()
             
-             if st.button('Start Processing'):
+            if st.button('Start Processing'):
                 with st.spinner(f'Processing {file_name}...'):
                     hourly_csv, daily_csv = process_and_save_csv(file_content, file_name)
                 
