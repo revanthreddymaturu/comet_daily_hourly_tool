@@ -3,10 +3,15 @@ import pandas as pd
 import os
 from pathlib import Path
 from io import StringIO
+import base64
 
 def process_and_save_csv(file_content, file_name):
+    # Decode bytes content to string
+    file_content_str = file_content.decode('utf-8')
+    
     # Load the data
-    data = pd.read_csv(StringIO(file_content))
+    data = pd.read_csv(StringIO(file_content_str))
+
     
     # Convert 'Time' column to datetime and set as index
     data['Time'] = pd.to_datetime(data['Time'])
@@ -30,33 +35,36 @@ def process_and_save_csv(file_content, file_name):
     hourly_csv = hourly_data.to_csv(index=True)
     daily_csv = daily_data.to_csv(index=True)
 
-    return hourly_csv, daily_csv
+    return hourly_csv, daily_csv,hourly_data, daily_data
 
 # Main function to run the app
 def main():
-    st.title('CSV Data Processing Tool')
+    st.title('COMET Data Processing Tool')
 
     # Allow user to upload CSV files
     uploaded_files = st.file_uploader('Upload CSV files', type=['csv'], accept_multiple_files=True)
 
     if uploaded_files:
-        for file in uploaded_files:
+        for index,file in enumerate(uploaded_files):
             file_name = file.name
+            file_name = file_name.replace('.CSV', '').replace('.csv', '')
             file_content = file.getvalue()
             
-            if st.button('Start Processing'):
-                with st.spinner(f'Processing {file_name}...'):
-                    hourly_csv, daily_csv = process_and_save_csv(file_content, file_name)
+            if st.button('Start Processing',key=f'button_{index}'):
+                with st.spinner(f'Processing File {index}...'):
+                    hourly_csv, daily_csv, hourly_data, daily_data = process_and_save_csv(file_content, file_name)
                 
-                # Display the processed files
-                st.write('### Hourly Averages')
-                st.write(hourly_csv, unsafe_allow_html=True)
-                st.write('### Daily Averages')
-                st.write(daily_csv, unsafe_allow_html=True)
-
                 # Add download buttons
                 st.markdown(get_download_link(hourly_csv, f'{file_name}_Hourly_Averages.csv'), unsafe_allow_html=True)
                 st.markdown(get_download_link(daily_csv, f'{file_name}_Daily_Averages.csv'), unsafe_allow_html=True)
+
+                # Display the processed files
+                st.write('### Hourly Averages')
+                st.dataframe(hourly_data.head(10))
+
+                st.write('### Daily Averages')
+                st.dataframe(daily_data.head(10))
+                
 
 # Function to create a download link for a CSV file
 def get_download_link(csv_content, file_name):
