@@ -12,11 +12,9 @@ def process_and_save_csv(file_content, file_name):
     # Load the data
     data = pd.read_csv(StringIO(file_content_str))
 
-    # Check if the first column header is blank, if yes, rename it to 'Time'
-    if data.columns[0] == "":
-        data.rename(columns={data.columns[0]: 'Time'}, inplace=True)
+    # Rename the first column to 'Time'
+    data.rename(columns={data.columns[0]: 'Time'}, inplace=True)
 
-    
     # Convert 'Time' column to datetime and set as index
     data['Time'] = pd.to_datetime(data['Time'])
     data.set_index('Time', inplace=True)
